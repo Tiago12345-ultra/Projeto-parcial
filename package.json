@@ -1,0 +1,24 @@
+{
+  "name": "atvhelder-25-09",
+  "version": "1.0.0",
+  "description": "alteração minha tuffss",
+  "main": "index.js",
+  "scripts": {
+    "start": "node src/server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Tiago12345-ultra/AtvHelder-25-09.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Tiago12345-ultra/AtvHelder-25-09/issues"
+  },
+  "homepage": "https://github.com/Tiago12345-ultra/AtvHelder-25-09#readme",
+  "dependencies": {
+    "express": "^5.2.1"
+  }
+}
