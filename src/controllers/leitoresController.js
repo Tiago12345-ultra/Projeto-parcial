@@ -29,6 +29,7 @@ function buscarLeitor(req, res) {
 }
 
 module.exports = {
+  leitores,
   listarLeitores,
   cadastrarLeitor,
   buscarLeitor

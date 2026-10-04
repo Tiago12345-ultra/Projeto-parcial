@@ -43,6 +43,7 @@ livros.splice(indice, 1);
 res.json({ mensagem: "Livro excluído com sucesso" });}
 
 module.exports = {
+livros,
 listarLivros,
 cadastrarLivro,
 buscarLivro,
