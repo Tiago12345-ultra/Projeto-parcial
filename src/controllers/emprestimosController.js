@@ -3,6 +3,16 @@ const { leitores } = require("./leitoresController");
 
 const emprestimos = [];
 
+function calcularDiasAtraso(dataPrevistaDevolucao, dataDevolucao) {
+  const prazo = new Date(dataPrevistaDevolucao);
+  const devolucao = new Date(dataDevolucao);
+
+  const diferenca = devolucao - prazo;
+  const dias = Math.ceil(diferenca / (1000 * 60 * 60 * 24));
+
+  return Math.max(0, dias);
+}
+
 function listarEmprestimos(req, res) {
   res.json(emprestimos);
 }
@@ -46,9 +56,32 @@ function cadastrarEmprestimo(req, res) {
   }
 
   const dataEmprestimo = new Date();
-  const dataPrevistaDevolucao = new Date(dataEmprestimo);
+const dataPrevistaDevolucao = new Date(dataEmprestimo);
 
-  dataPrevistaDevolucao.setDate(dataPrevistaDevolucao.getDate() + 7);
+const ultimoEmprestimoDevolvido = emprestimos
+  .filter(
+    (emprestimo) =>
+      emprestimo.leitorId === leitorId &&
+      emprestimo.dataDevolucao !== null
+  )
+  .sort(
+    (a, b) =>
+      new Date(b.dataDevolucao) - new Date(a.dataDevolucao)
+  )[0];
+
+let prazoDias = 7;
+
+if (
+  ultimoEmprestimoDevolvido &&
+  ultimoEmprestimoDevolvido.diasAtraso >= 1 &&
+  ultimoEmprestimoDevolvido.diasAtraso <= 7
+) {
+  prazoDias = 4;
+}
+
+dataPrevistaDevolucao.setDate(
+  dataPrevistaDevolucao.getDate() + prazoDias
+);
 
   const novoEmprestimo = {
     id: emprestimos.length + 1,
@@ -83,7 +116,17 @@ function devolverEmprestimo(req, res) {
     });
   }
 
-  emprestimo.dataDevolucao = new Date().toISOString();
+  const dataDevolucao = req.body.dataDevolucao
+  ? new Date(req.body.dataDevolucao).toISOString()
+  : new Date().toISOString();
 
-  res.json(emprestimo);
+const diasAtraso = calcularDiasAtraso(
+  emprestimo.dataPrevistaDevolucao,
+  dataDevolucao
+);
+
+emprestimo.dataDevolucao = dataDevolucao;
+emprestimo.diasAtraso = diasAtraso;
+
+res.json(emprestimo);
 }
