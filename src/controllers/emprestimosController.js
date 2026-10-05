@@ -108,32 +108,32 @@ function cadastrarEmprestimo(req, res) {
   }
 
   const dataEmprestimo = new Date();
-const dataPrevistaDevolucao = new Date(dataEmprestimo);
+  const dataPrevistaDevolucao = new Date(dataEmprestimo);
 
-const ultimoEmprestimoDevolvido = emprestimos
-  .filter(
-    (emprestimo) =>
-      emprestimo.leitorId === leitorId &&
-      emprestimo.dataDevolucao !== null
-  )
-  .sort(
-    (a, b) =>
-      new Date(b.dataDevolucao) - new Date(a.dataDevolucao)
-  )[0];
+  const ultimoEmprestimoDevolvido = emprestimos
+    .filter(
+      (emprestimo) =>
+        emprestimo.leitorId === leitorId &&
+        emprestimo.dataDevolucao !== null
+    )
+    .sort(
+      (a, b) =>
+        new Date(b.dataDevolucao) - new Date(a.dataDevolucao)
+    )[0];
 
-let prazoDias = 7;
+  let prazoDias = 7;
 
-if (
-  ultimoEmprestimoDevolvido &&
-  ultimoEmprestimoDevolvido.diasAtraso >= 1 &&
-  ultimoEmprestimoDevolvido.diasAtraso <= 7
-) {
-  prazoDias = 4;
-}
+  if (
+    ultimoEmprestimoDevolvido &&
+    ultimoEmprestimoDevolvido.diasAtraso >= 1 &&
+    ultimoEmprestimoDevolvido.diasAtraso <= 7
+  ) {
+    prazoDias = 4;
+  }
 
-dataPrevistaDevolucao.setDate(
-  dataPrevistaDevolucao.getDate() + prazoDias
-);
+  dataPrevistaDevolucao.setDate(
+    dataPrevistaDevolucao.getDate() + prazoDias
+  );
 
   const novoEmprestimo = {
     id: emprestimos.length + 1,
@@ -169,16 +169,16 @@ function devolverEmprestimo(req, res) {
   }
 
   const dataDevolucao = req.body.dataDevolucao
-  ? new Date(req.body.dataDevolucao).toISOString()
-  : new Date().toISOString();
+    ? new Date(req.body.dataDevolucao).toISOString()
+    : new Date().toISOString();
 
-const diasAtraso = calcularDiasAtraso(
-  emprestimo.dataPrevistaDevolucao,
-  dataDevolucao
-);
+  const diasAtraso = calcularDiasAtraso(
+    emprestimo.dataPrevistaDevolucao,
+    dataDevolucao
+  );
 
-emprestimo.dataDevolucao = dataDevolucao;
-emprestimo.diasAtraso = diasAtraso;
+  emprestimo.dataDevolucao = dataDevolucao;
+  emprestimo.diasAtraso = diasAtraso;
 
-res.json(emprestimo);
+  res.json(emprestimo);
 }
