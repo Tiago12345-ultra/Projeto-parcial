@@ -13,6 +13,57 @@ function calcularDiasAtraso(dataPrevistaDevolucao, dataDevolucao) {
   return Math.max(0, dias);
 }
 
+function contarDiasUteisAposPrazo(dataPrevistaDevolucao, dataAtual) {
+  const prazo = new Date(dataPrevistaDevolucao);
+  const atual = new Date(dataAtual);
+
+  if (atual <= prazo) {
+    return 0;
+  }
+
+  const data = new Date(prazo);
+  data.setUTCDate(data.getUTCDate() + 1);
+
+  let diasUteis = 0;
+
+  while (data <= atual) {
+    const diaDaSemana = data.getUTCDay();
+
+    if (diaDaSemana !== 0 && diaDaSemana !== 6) {
+      diasUteis++;
+    }
+
+    data.setUTCDate(data.getUTCDate() + 1);
+  }
+
+  return diasUteis;
+}
+
+function verificarBloqueios() {
+  const agora = new Date();
+
+  emprestimos.forEach((emprestimo) => {
+    if (emprestimo.dataDevolucao !== null) {
+      return;
+    }
+
+    const diasUteisAtraso = contarDiasUteisAposPrazo(
+      emprestimo.dataPrevistaDevolucao,
+      agora
+    );
+
+    if (diasUteisAtraso >= 7) {
+      const leitor = leitores.find(
+        (leitor) => leitor.id === emprestimo.leitorId
+      );
+
+      if (leitor) {
+        leitor.bloqueado = true;
+      }
+    }
+  });
+}
+
 function listarEmprestimos(req, res) {
   res.json(emprestimos);
 }
@@ -25,6 +76,7 @@ module.exports = {
 };
 
 function cadastrarEmprestimo(req, res) {
+  verificarBloqueios();
   const leitorId = Number(req.body.leitorId);
   const livroId = Number(req.body.livroId);
 
