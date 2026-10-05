@@ -3,9 +3,11 @@ const express = require("express");
 const router = express.Router();
 
 const {
-  listarEmprestimos
+  listarEmprestimos,
+  cadastrarEmprestimo
 } = require("../controllers/emprestimosController");
 
 router.get("/", listarEmprestimos);
+router.post("/", cadastrarEmprestimo);
 
 module.exports = router;
