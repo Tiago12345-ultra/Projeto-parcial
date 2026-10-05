@@ -8,7 +8,8 @@ function cadastrarLeitor(req, res) {
   const novoLeitor = {
     id: leitores.length + 1,
     nome: req.body.nome,
-    email: req.body.email
+    email: req.body.email,
+    bloqueado: false
   };
 
   leitores.push(novoLeitor);
@@ -34,3 +35,4 @@ module.exports = {
   cadastrarLeitor,
   buscarLeitor
 };
+
