@@ -10,7 +10,8 @@ function listarEmprestimos(req, res) {
 module.exports = {
   emprestimos,
   listarEmprestimos,
-  cadastrarEmprestimo
+  cadastrarEmprestimo,
+  devolverEmprestimo
 };
 
 function cadastrarEmprestimo(req, res) {
@@ -61,4 +62,28 @@ function cadastrarEmprestimo(req, res) {
   emprestimos.push(novoEmprestimo);
 
   res.status(201).json(novoEmprestimo);
+}
+
+function devolverEmprestimo(req, res) {
+  const id = Number(req.params.id);
+
+  const emprestimo = emprestimos.find(
+    (emprestimo) => emprestimo.id === id
+  );
+
+  if (!emprestimo) {
+    return res.status(404).json({
+      mensagem: "Empréstimo não encontrado"
+    });
+  }
+
+  if (emprestimo.dataDevolucao !== null) {
+    return res.status(400).json({
+      mensagem: "Empréstimo já foi devolvido"
+    });
+  }
+
+  emprestimo.dataDevolucao = new Date().toISOString();
+
+  res.json(emprestimo);
 }
