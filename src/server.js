@@ -1,20 +1,22 @@
-const express = require("express");
+import app from './app.js';
+import { conectar, desconectar } from './config/database.js';
 
-const app = express();
+try {
+  await conectar();
+  console.log('Conectado ao MongoDB');
+} catch (error) {
+  console.error('Não foi possível conectar ao MongoDB. Verifique MONGODB_URI, MONGODB_DB_NAME e se o servidor está em execução.');
+  console.error(error.message);
+  process.exit(1);
+}
 
-app.use(express.json());
+const servidor = app.listen(3000, () => console.log('API em http://localhost:3000'));
 
-const livrosRoutes = require("./routes/livrosRoutes");
-const leitoresRoutes = require("./routes/leitoresRoutes");
-const emprestimosRoutes = require("./routes/emprestimosRoutes");
+async function encerrar() {
+  servidor.close();
+  await desconectar();
+  process.exit(0);
+}
 
-app.use("/livros", livrosRoutes);
-app.use("/leitores", leitoresRoutes);
-app.use("/emprestimos", emprestimosRoutes);
-app.get("/", (req, res) => {
-  res.json({ mensagem: "API da Biblioteca funcionando!" });
-});
-
-app.listen(3000, () => {
-  console.log("Servidor rodando na porta 3000");
-});
+process.on('SIGINT', encerrar);
+process.on('SIGTERM', encerrar);
