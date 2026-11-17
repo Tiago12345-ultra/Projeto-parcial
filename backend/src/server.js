@@ -1,7 +1,10 @@
+
 const express = require("express");
+const cors = require("cors");
 
 const app = express();
 
+app.use(cors());
 app.use(express.json());
 
 const livrosRoutes = require("./routes/livrosRoutes");
@@ -11,6 +14,7 @@ const emprestimosRoutes = require("./routes/emprestimosRoutes");
 app.use("/livros", livrosRoutes);
 app.use("/leitores", leitoresRoutes);
 app.use("/emprestimos", emprestimosRoutes);
+
 app.get("/", (req, res) => {
   res.json({ mensagem: "API da Biblioteca funcionando!" });
 });
