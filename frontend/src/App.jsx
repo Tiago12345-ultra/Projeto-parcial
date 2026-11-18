@@ -10,13 +10,10 @@ function App() {
   const [pesquisa, setPesquisa] = useState('');
   const [editando, setEditando] = useState(null);
   const [erro, setErro] = useState('');
-  const [carregando, setCarregando] = useState(false);
+  const [carregando, setCarregando] = useState(true);
   const [salvando, setSalvando] = useState(false);
 
   async function carregarLivros() {
-    setCarregando(true);
-    setErro('');
-
     try {
       const dados = await apiGet('/livros');
       setLivros(dados);
@@ -96,9 +93,18 @@ function App() {
       .includes(pesquisa.toLowerCase())
   );
 
-  useEffect(() => {
-    carregarLivros();
-  }, []);
+ useEffect(() => {
+  apiGet('/livros')
+    .then((dados) => {
+      setLivros(dados);
+    })
+    .catch((error) => {
+      setErro(error.message);
+    })
+    .finally(() => {
+      setCarregando(false);
+    });
+}, []);
 
   return (
     <main style={{ padding: '30px', fontFamily: 'Arial' }}>
