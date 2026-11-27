@@ -1,6 +1,6 @@
 
 import { useEffect, useState } from 'react';
-import { apiGet, apiPost } from '../api';
+import { apiGet, apiPost, apiPut } from '../api';
 
 function Emprestimos() {
   const [emprestimos, setEmprestimos] = useState([]);
@@ -13,6 +13,9 @@ const [leitorId, setLeitorId] = useState('');
 const [livroId, setLivroId] = useState('');
 const [salvando, setSalvando] = useState(false);
 const [sucesso, setSucesso] = useState('');
+const [devolvendo, setDevolvendo] = useState(null);
+const [erroDevolucao, setErroDevolucao] = useState('');
+const [sucessoDevolucao, setSucessoDevolucao] = useState('');
 
   useEffect(() => {
   Promise.all([
@@ -80,6 +83,57 @@ async function cadastrarEmprestimo(event) {
     setSalvando(false);
   }
 }
+
+
+async function devolverEmprestimo(id) {
+  const confirmar = window.confirm(
+    'Deseja confirmar a devolução deste livro?'
+  );
+
+  if (!confirmar) {
+    return;
+  }
+
+  setErroDevolucao('');
+  setSucessoDevolucao('');
+  setErroCadastro('');
+  setSucesso('');
+  setDevolvendo(id);
+
+  try {
+    const emprestimoAtualizado = await apiPut(
+      `/emprestimos/${id}/devolucao`,
+      {}
+    );
+
+    setEmprestimos((anteriores) =>
+      anteriores.map((emprestimo) =>
+        emprestimo.id === id
+          ? emprestimoAtualizado
+          : emprestimo
+      )
+    );
+
+    setSucessoDevolucao(
+      'Devolução registrada com sucesso!'
+    );
+  } catch (error) {
+    if (error.status === 400) {
+      setErroDevolucao(
+        'Este empréstimo já foi devolvido.'
+      );
+    } else if (error.status === 404) {
+      setErroDevolucao(
+        'Empréstimo não encontrado.'
+      );
+    } else {
+      setErroDevolucao(error.message);
+    }
+  } finally {
+    setDevolvendo(null);
+  }
+}
+
 
 
 
@@ -152,6 +206,14 @@ async function cadastrarEmprestimo(event) {
 
 <h3>Empréstimos cadastrados</h3>
 
+{sucessoDevolucao && (
+  <p role="status">{sucessoDevolucao}</p>
+)}
+
+{erroDevolucao && (
+  <p role="alert">{erroDevolucao}</p>
+)}
+
 
       {erro && <p>Erro: {erro}</p>}
 
@@ -172,6 +234,8 @@ async function cadastrarEmprestimo(event) {
               <th>Prazo de devolução</th>
               <th>Data da devolução</th>
               <th>Situação</th>
+              <th>Dias de atraso</th>
+              <th>Ações</th>
             </tr>
           </thead>
 
@@ -203,6 +267,29 @@ async function cadastrarEmprestimo(event) {
                   {emprestimo.dataDevolucao
                     ? 'Devolvido'
                     : 'Ativo'}
+
+<td>
+  {emprestimo.dataDevolucao
+    ? emprestimo.diasAtraso ?? 0
+    : '-'}
+</td>
+
+<td>
+  {emprestimo.dataDevolucao ? (
+    'Concluído'
+  ) : (
+    <button
+      type="button"
+      disabled={devolvendo !== null}
+      onClick={() => devolverEmprestimo(emprestimo.id)}
+    >
+      {devolvendo === emprestimo.id
+        ? 'Devolvendo...'
+        : 'Devolver'}
+    </button>
+  )}
+</td>
+
                 </td>
               </tr>
             ))}
