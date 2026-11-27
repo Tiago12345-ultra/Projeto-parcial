@@ -1,0 +1,30 @@
+{
+  "name": "atvhelder-25-09",
+  "version": "2.0.0",
+  "description": "API da Biblioteca com MongoDB, organizada em MVC",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "db:up": "docker compose up -d",
+    "db:down": "docker compose down",
+    "db:logs": "docker compose logs -f mongodb"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Tiago12345-ultra/AtvHelder-25-09.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Tiago12345-ultra/AtvHelder-25-09/issues"
+  },
+  "homepage": "https://github.com/Tiago12345-ultra/AtvHelder-25-09#readme",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^17.0.0",
+    "express": "^5.2.1",
+    "mongodb": "^6.0.0"
+  }
+}
