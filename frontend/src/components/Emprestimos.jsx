@@ -16,6 +16,11 @@ const [sucesso, setSucesso] = useState('');
 const [devolvendo, setDevolvendo] = useState(null);
 const [erroDevolucao, setErroDevolucao] = useState('');
 const [sucessoDevolucao, setSucessoDevolucao] = useState('');
+const [leitorHistoricoId, setLeitorHistoricoId] = useState('');
+const [historico, setHistorico] = useState([]);
+const [carregandoHistorico, setCarregandoHistorico] = useState(false);
+const [erroHistorico, setErroHistorico] = useState('');
+const [historicoConsultado, setHistoricoConsultado] = useState(false);
 
   useEffect(() => {
   Promise.all([
@@ -133,6 +138,40 @@ async function devolverEmprestimo(id) {
     setDevolvendo(null);
   }
 }
+
+
+async function consultarHistorico(event) {
+  event.preventDefault();
+
+  setErroHistorico('');
+  setHistorico([]);
+  setHistoricoConsultado(false);
+
+  if (!leitorHistoricoId) {
+    setErroHistorico('Selecione um leitor.');
+    return;
+  }
+
+  setCarregandoHistorico(true);
+
+  try {
+    const dados = await apiGet(
+      `/emprestimos/leitor/${leitorHistoricoId}`
+    );
+
+    setHistorico(dados);
+    setHistoricoConsultado(true);
+  } catch (error) {
+    if (error.status === 404) {
+      setErroHistorico('Leitor não encontrado.');
+    } else {
+      setErroHistorico(error.message);
+    }
+  } finally {
+    setCarregandoHistorico(false);
+  }
+}
+
 
 
 
@@ -296,6 +335,137 @@ async function devolverEmprestimo(id) {
           </tbody>
         </table>
       )}
+
+<hr />
+
+<h3>Histórico de empréstimos por leitor</h3>
+
+<form onSubmit={consultarHistorico}>
+  <div>
+    <label htmlFor="leitorHistorico">
+      Leitor:
+    </label>
+
+    <select
+      id="leitorHistorico"
+      value={leitorHistoricoId}
+      disabled={carregandoHistorico}
+      onChange={(event) => {
+        setLeitorHistoricoId(event.target.value);
+        setHistorico([]);
+        setHistoricoConsultado(false);
+        setErroHistorico('');
+      }}
+      required
+    >
+      <option value="">Selecione um leitor</option>
+
+      {leitores.map((leitor) => (
+        <option key={leitor.id} value={leitor.id}>
+          {leitor.nome}
+        </option>
+      ))}
+    </select>
+  </div>
+
+  <br />
+
+  <button
+    type="submit"
+    disabled={carregandoHistorico || carregando}
+  >
+    {carregandoHistorico
+      ? 'Consultando...'
+      : 'Consultar histórico'}
+  </button>
+</form>
+
+{erroHistorico && (
+  <p role="alert">{erroHistorico}</p>
+)}
+
+{carregandoHistorico && (
+  <p>Carregando histórico...</p>
+)}
+
+{historicoConsultado && (
+  <div>
+    <p>Total de empréstimos: {historico.length}</p>
+
+    <p>
+      Empréstimos ativos: {
+        historico.filter(
+          (emprestimo) => emprestimo.dataDevolucao === null
+        ).length
+      }
+    </p>
+
+    <p>
+      Empréstimos devolvidos: {
+        historico.filter(
+          (emprestimo) => emprestimo.dataDevolucao !== null
+        ).length
+      }
+    </p>
+
+    {historico.length === 0 ? (
+      <p>Este leitor não possui empréstimos registrados.</p>
+    ) : (
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Livro</th>
+            <th>Data do empréstimo</th>
+            <th>Prazo de devolução</th>
+            <th>Data da devolução</th>
+            <th>Situação</th>
+            <th>Dias de atraso</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {historico.map((emprestimo) => (
+            <tr key={emprestimo.id}>
+              <td>{emprestimo.id}</td>
+
+              <td>
+                {livros.find(
+                  (livro) => livro.id === emprestimo.livroId
+                )?.titulo || `Livro ${emprestimo.livroId}`}
+              </td>
+
+              <td>
+                {formatarData(emprestimo.dataEmprestimo)}
+              </td>
+
+              <td>
+                {formatarData(emprestimo.dataPrevistaDevolucao)}
+              </td>
+
+              <td>
+                {formatarData(emprestimo.dataDevolucao)}
+              </td>
+
+              <td>
+                {emprestimo.dataDevolucao
+                  ? 'Devolvido'
+                  : 'Ativo'}
+              </td>
+
+              <td>
+                {emprestimo.dataDevolucao
+                  ? emprestimo.diasAtraso ?? 0
+                  : '-'}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    )}
+  </div>
+)}
+
     </section>
   );
 }
