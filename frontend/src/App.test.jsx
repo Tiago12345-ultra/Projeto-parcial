@@ -1,6 +1,6 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import App from './App';
 import { apiGet } from './api';
@@ -16,17 +16,52 @@ describe('Testes da tela de livros', () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    apiGet.mockResolvedValue([
-      { id: 1, titulo: 'Dom Casmurro', autor: 'Machado de Assis' },
-      { id: 2, titulo: 'O Pequeno Príncipe', autor: 'Antoine' },
-    ]);
+    apiGet.mockImplementation(async (rota) => {
+      if (rota === '/livros') {
+        return [
+          {
+            id: 1,
+            titulo: 'Dom Casmurro',
+            autor: 'Machado de Assis'
+          },
+          {
+            id: 2,
+            titulo: 'O Pequeno Príncipe',
+            autor: 'Antoine'
+          }
+        ];
+      }
+
+      if (rota === '/leitores') {
+        return [
+          {
+            id: 1,
+            nome: 'Leitor de Teste',
+            bloqueado: false
+          }
+        ];
+      }
+
+      if (rota === '/emprestimos') {
+        return [];
+      }
+
+      throw new Error(`Rota não simulada: ${rota}`);
+    });
   });
 
   it('deve mostrar os livros cadastrados', async () => {
     render(<App />);
 
-    expect(await screen.findByText('Dom Casmurro')).toBeInTheDocument();
-    expect(screen.getByText('O Pequeno Príncipe')).toBeInTheDocument();
+    const lista = await screen.findByRole('list');
+
+    expect(
+      within(lista).getByText('Dom Casmurro')
+    ).toBeInTheDocument();
+
+    expect(
+      within(lista).getByText('O Pequeno Príncipe')
+    ).toBeInTheDocument();
   });
 
   it('deve filtrar livros pela pesquisa', async () => {
@@ -34,7 +69,11 @@ describe('Testes da tela de livros', () => {
 
     render(<App />);
 
-    await screen.findByText('Dom Casmurro');
+    const lista = await screen.findByRole('list');
+
+    expect(
+      within(lista).getByText('Dom Casmurro')
+    ).toBeInTheDocument();
 
     const campo = screen.getByPlaceholderText(
       'Pesquisar por título ou autor'
@@ -42,7 +81,12 @@ describe('Testes da tela de livros', () => {
 
     await user.type(campo, 'Dom');
 
-    expect(screen.getByText('Dom Casmurro')).toBeInTheDocument();
-    expect(screen.queryByText('O Pequeno Príncipe')).not.toBeInTheDocument();
+    expect(
+      within(lista).getByText('Dom Casmurro')
+    ).toBeInTheDocument();
+
+    expect(
+      within(lista).queryByText('O Pequeno Príncipe')
+    ).not.toBeInTheDocument();
   });
 });

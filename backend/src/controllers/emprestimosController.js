@@ -68,11 +68,32 @@ function listarEmprestimos(req, res) {
   res.json(emprestimos);
 }
 
+function listarHistoricoLeitor(req, res) {
+  const leitorId = Number(req.params.id);
+
+  const leitor = leitores.find(
+    (leitor) => leitor.id === leitorId
+  );
+
+  if (!leitor) {
+    return res.status(404).json({
+      mensagem: "Leitor não encontrado"
+    });
+  }
+
+  const historico = emprestimos.filter(
+    (emprestimo) => emprestimo.leitorId === leitorId
+  );
+
+  res.json(historico);
+}
+
 module.exports = {
   emprestimos,
   listarEmprestimos,
   cadastrarEmprestimo,
-  devolverEmprestimo
+  devolverEmprestimo,
+  listarHistoricoLeitor
 };
 
 function cadastrarEmprestimo(req, res) {
