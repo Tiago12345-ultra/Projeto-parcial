@@ -1,6 +1,7 @@
 
 import { useEffect, useState } from 'react';
 import { apiGet, apiPost, apiPut } from '../api';
+import './Emprestimos.css';
 
 function Emprestimos() {
   const [emprestimos, setEmprestimos] = useState([]);
@@ -185,7 +186,7 @@ async function consultarHistorico(event) {
   }
 
   return (
-    <section>
+    <section className="emprestimos">
       <h2>Empréstimos</h2>
 
 <h3>Registrar empréstimo</h3>
@@ -238,7 +239,9 @@ async function consultarHistorico(event) {
   </button>
 </form>
 
-{sucesso && <p>{sucesso}</p>}
+{sucesso && (
+  <p role="status">{sucesso}</p>
+)}
 {erroCadastro && (
   <p role="alert">{erroCadastro}</p>
 )}
@@ -263,7 +266,8 @@ async function consultarHistorico(event) {
       ) : emprestimos.length === 0 ? (
         <p>Nenhum empréstimo cadastrado.</p>
       ) : (
-        <table>
+    <div className="tabela-container">
+  <table>
           <thead>
             <tr>
               <th>ID</th>
@@ -303,11 +307,18 @@ async function consultarHistorico(event) {
                   {formatarData(emprestimo.dataDevolucao)}
                 </td>
                 <td>
-                  {emprestimo.dataDevolucao
-                    ? 'Devolvido'
-                    : 'Ativo'}
+                  <span
+    className={`situacao ${
+      emprestimo.dataDevolucao
+        ? 'situacao-devolvido'
+        : 'situacao-ativo'
+    }`}
+  >
+    {emprestimo.dataDevolucao
+      ? 'Devolvido'
+      : 'Ativo'}
+  </span><td>
 
-<td>
   {emprestimo.dataDevolucao
     ? emprestimo.diasAtraso ?? 0
     : '-'}
@@ -333,7 +344,8 @@ async function consultarHistorico(event) {
               </tr>
             ))}
           </tbody>
-        </table>
+          </table>
+</div>
       )}
 
 <hr />
@@ -390,28 +402,40 @@ async function consultarHistorico(event) {
 
 {historicoConsultado && (
   <div>
-    <p>Total de empréstimos: {historico.length}</p>
+    
+<div className="historico-resumo">
+  <div className="resumo-card">
+    <span>Total de empréstimos</span>
+    <strong>{historico.length}</strong>
+  </div>
 
-    <p>
-      Empréstimos ativos: {
-        historico.filter(
-          (emprestimo) => emprestimo.dataDevolucao === null
-        ).length
-      }
-    </p>
+  <div className="resumo-card resumo-ativos">
+    <span>Empréstimos ativos</span>
 
-    <p>
-      Empréstimos devolvidos: {
-        historico.filter(
-          (emprestimo) => emprestimo.dataDevolucao !== null
-        ).length
-      }
-    </p>
+    <strong>
+      {historico.filter(
+        (emprestimo) => emprestimo.dataDevolucao === null
+      ).length}
+    </strong>
+  </div>
+
+  <div className="resumo-card resumo-devolvidos">
+    <span>Empréstimos devolvidos</span>
+
+    <strong>
+      {historico.filter(
+        (emprestimo) => emprestimo.dataDevolucao !== null
+      ).length}
+    </strong>
+  </div>
+</div>
+
 
     {historico.length === 0 ? (
       <p>Este leitor não possui empréstimos registrados.</p>
     ) : (
-      <table>
+      <div className="tabela-container">
+  <table>
         <thead>
           <tr>
             <th>ID</th>
@@ -447,11 +471,21 @@ async function consultarHistorico(event) {
                 {formatarData(emprestimo.dataDevolucao)}
               </td>
 
-              <td>
-                {emprestimo.dataDevolucao
-                  ? 'Devolvido'
-                  : 'Ativo'}
-              </td>
+              
+<td>
+  <span
+    className={`situacao ${
+      emprestimo.dataDevolucao
+        ? 'situacao-devolvido'
+        : 'situacao-ativo'
+    }`}
+  >
+    {emprestimo.dataDevolucao
+      ? 'Devolvido'
+      : 'Ativo'}
+  </span>
+</td>
+
 
               <td>
                 {emprestimo.dataDevolucao
@@ -461,7 +495,8 @@ async function consultarHistorico(event) {
             </tr>
           ))}
         </tbody>
-      </table>
+        </table>
+</div>
     )}
   </div>
 )}
