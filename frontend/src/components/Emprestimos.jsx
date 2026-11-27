@@ -317,7 +317,10 @@ async function consultarHistorico(event) {
     {emprestimo.dataDevolucao
       ? 'Devolvido'
       : 'Ativo'}
-  </span><td>
+  </span>
+</td>
+
+<td>
 
   {emprestimo.dataDevolucao
     ? emprestimo.diasAtraso ?? 0
@@ -340,7 +343,6 @@ async function consultarHistorico(event) {
   )}
 </td>
 
-                </td>
               </tr>
             ))}
           </tbody>
