@@ -3,13 +3,12 @@ import { useEffect, useState } from 'react';
 import { apiGet, apiPost, apiPut } from '../api';
 import './Emprestimos.css';
 
-function Emprestimos() {
+function Emprestimos({ livros }) {
   const [emprestimos, setEmprestimos] = useState([]);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState('');
   const [erroCadastro, setErroCadastro] = useState('');
   const [leitores, setLeitores] = useState([]);
-const [livros, setLivros] = useState([]);
 const [leitorId, setLeitorId] = useState('');
 const [livroId, setLivroId] = useState('');
 const [salvando, setSalvando] = useState(false);
@@ -23,16 +22,15 @@ const [carregandoHistorico, setCarregandoHistorico] = useState(false);
 const [erroHistorico, setErroHistorico] = useState('');
 const [historicoConsultado, setHistoricoConsultado] = useState(false);
 
-  useEffect(() => {
+  
+useEffect(() => {
   Promise.all([
     apiGet('/emprestimos'),
-    apiGet('/leitores'),
-    apiGet('/livros')
+    apiGet('/leitores')
   ])
-    .then(([dadosEmprestimos, dadosLeitores, dadosLivros]) => {
+    .then(([dadosEmprestimos, dadosLeitores]) => {
       setEmprestimos(dadosEmprestimos);
       setLeitores(dadosLeitores);
-      setLivros(dadosLivros);
     })
     .catch((error) => {
       setErro(error.message);
@@ -41,7 +39,6 @@ const [historicoConsultado, setHistoricoConsultado] = useState(false);
       setCarregando(false);
     });
 }, []);
-
 
 
 async function cadastrarEmprestimo(event) {
@@ -67,6 +64,17 @@ async function cadastrarEmprestimo(event) {
       ...anteriores,
       novoEmprestimo
     ]);
+
+if (
+  historicoConsultado &&
+  novoEmprestimo.leitorId === Number(leitorHistoricoId)
+) {
+  setHistorico((anteriores) => [
+    ...anteriores,
+    novoEmprestimo
+  ]);
+}
+
 
     setLeitorId('');
     setLivroId('');
@@ -119,6 +127,15 @@ async function devolverEmprestimo(id) {
           : emprestimo
       )
     );
+
+setHistorico((anteriores) =>
+  anteriores.map((emprestimo) =>
+    emprestimo.id === id
+      ? emprestimoAtualizado
+      : emprestimo
+  )
+);
+
 
     setSucessoDevolucao(
       'Devolução registrada com sucesso!'
@@ -234,7 +251,7 @@ async function consultarHistorico(event) {
 
   <br />
 
-  <button type="submit" disabled={salvando || carregando}>
+  <button type="submit" disabled={salvando || carregando || carregandoHistorico}>
     {salvando ? 'Registrando...' : 'Registrar empréstimo'}
   </button>
 </form>
@@ -333,7 +350,7 @@ async function consultarHistorico(event) {
   ) : (
     <button
       type="button"
-      disabled={devolvendo !== null}
+      disabled={devolvendo !== null || carregandoHistorico}
       onClick={() => devolverEmprestimo(emprestimo.id)}
     >
       {devolvendo === emprestimo.id
@@ -363,7 +380,11 @@ async function consultarHistorico(event) {
     <select
       id="leitorHistorico"
       value={leitorHistoricoId}
-      disabled={carregandoHistorico}
+      disabled={
+  carregandoHistorico ||
+  salvando ||
+  devolvendo !== null
+}
       onChange={(event) => {
         setLeitorHistoricoId(event.target.value);
         setHistorico([]);
@@ -386,7 +407,12 @@ async function consultarHistorico(event) {
 
   <button
     type="submit"
-    disabled={carregandoHistorico || carregando}
+    disabled={
+  carregandoHistorico ||
+  carregando ||
+  salvando ||
+  devolvendo !== null
+}
   >
     {carregandoHistorico
       ? 'Consultando...'

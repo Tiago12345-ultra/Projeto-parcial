@@ -185,7 +185,7 @@ function App() {
 
       <hr />
 
-      <Emprestimos />
+      <Emprestimos livros={livros} />
     </main>
   );
 }
