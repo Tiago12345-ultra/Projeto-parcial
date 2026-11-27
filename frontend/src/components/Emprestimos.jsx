@@ -1,24 +1,87 @@
 
 import { useEffect, useState } from 'react';
-import { apiGet } from '../api';
+import { apiGet, apiPost } from '../api';
 
 function Emprestimos() {
   const [emprestimos, setEmprestimos] = useState([]);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState('');
+  const [erroCadastro, setErroCadastro] = useState('');
+  const [leitores, setLeitores] = useState([]);
+const [livros, setLivros] = useState([]);
+const [leitorId, setLeitorId] = useState('');
+const [livroId, setLivroId] = useState('');
+const [salvando, setSalvando] = useState(false);
+const [sucesso, setSucesso] = useState('');
 
   useEffect(() => {
-    apiGet('/emprestimos')
-      .then((dados) => {
-        setEmprestimos(dados);
-      })
-      .catch((error) => {
-        setErro(error.message);
-      })
-      .finally(() => {
-        setCarregando(false);
-      });
-  }, []);
+  Promise.all([
+    apiGet('/emprestimos'),
+    apiGet('/leitores'),
+    apiGet('/livros')
+  ])
+    .then(([dadosEmprestimos, dadosLeitores, dadosLivros]) => {
+      setEmprestimos(dadosEmprestimos);
+      setLeitores(dadosLeitores);
+      setLivros(dadosLivros);
+    })
+    .catch((error) => {
+      setErro(error.message);
+    })
+    .finally(() => {
+      setCarregando(false);
+    });
+}, []);
+
+
+
+async function cadastrarEmprestimo(event) {
+  event.preventDefault();
+
+  setErroCadastro('');
+  setSucesso('');
+
+  if (!leitorId || !livroId) {
+    setErroCadastro('Selecione um leitor e um livro.');
+    return;
+  }
+
+  setSalvando(true);
+
+  try {
+    const novoEmprestimo = await apiPost('/emprestimos', {
+      leitorId: Number(leitorId),
+      livroId: Number(livroId)
+    });
+
+    setEmprestimos((anteriores) => [
+      ...anteriores,
+      novoEmprestimo
+    ]);
+
+    setLeitorId('');
+    setLivroId('');
+    setSucesso('Empréstimo registrado com sucesso!');
+  } catch (error) {
+    if (error.status === 400) {
+      setErroCadastro(
+        'O leitor já possui 3 empréstimos ativos.'
+      );
+    } else if (error.status === 403) {
+      setErroCadastro(
+        'O leitor está bloqueado e não pode realizar empréstimos.'
+      );
+    } else if (error.status === 404) {
+      setErroCadastro('Leitor ou livro não encontrado.');
+    } else {
+      setErroCadastro(error.message);
+    }
+  } finally {
+    setSalvando(false);
+  }
+}
+
+
 
   function formatarData(data) {
     if (!data) {
@@ -31,6 +94,64 @@ function Emprestimos() {
   return (
     <section>
       <h2>Empréstimos</h2>
+
+<h3>Registrar empréstimo</h3>
+
+<form onSubmit={cadastrarEmprestimo}>
+  <div>
+    <label htmlFor="leitorEmprestimo">Leitor: </label>
+
+    <select
+      id="leitorEmprestimo"
+      value={leitorId}
+      onChange={(event) => setLeitorId(event.target.value)}
+      required
+    >
+      <option value="">Selecione um leitor</option>
+
+      {leitores.map((leitor) => (
+        <option key={leitor.id} value={leitor.id}>
+          {leitor.nome}
+        </option>
+      ))}
+    </select>
+  </div>
+
+  <br />
+
+  <div>
+    <label htmlFor="livroEmprestimo">Livro: </label>
+
+    <select
+      id="livroEmprestimo"
+      value={livroId}
+      onChange={(event) => setLivroId(event.target.value)}
+      required
+    >
+      <option value="">Selecione um livro</option>
+
+      {livros.map((livro) => (
+        <option key={livro.id} value={livro.id}>
+          {livro.titulo}
+        </option>
+      ))}
+    </select>
+  </div>
+
+  <br />
+
+  <button type="submit" disabled={salvando || carregando}>
+    {salvando ? 'Registrando...' : 'Registrar empréstimo'}
+  </button>
+</form>
+
+{sucesso && <p>{sucesso}</p>}
+{erroCadastro && (
+  <p role="alert">{erroCadastro}</p>
+)}
+
+<h3>Empréstimos cadastrados</h3>
+
 
       {erro && <p>Erro: {erro}</p>}
 
@@ -58,8 +179,17 @@ function Emprestimos() {
             {emprestimos.map((emprestimo) => (
               <tr key={emprestimo.id}>
                 <td>{emprestimo.id}</td>
-                <td>{emprestimo.leitorId}</td>
-                <td>{emprestimo.livroId}</td>
+                <td>
+  {leitores.find(
+    (leitor) => leitor.id === emprestimo.leitorId
+  )?.nome || `Leitor ${emprestimo.leitorId}`}
+</td>
+
+<td>
+  {livros.find(
+    (livro) => livro.id === emprestimo.livroId
+  )?.titulo || `Livro ${emprestimo.livroId}`}
+</td>
                 <td>
                   {formatarData(emprestimo.dataEmprestimo)}
                 </td>
