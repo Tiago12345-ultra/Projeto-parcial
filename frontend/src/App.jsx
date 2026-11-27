@@ -1,6 +1,6 @@
-
 import { useEffect, useState } from 'react';
 import { apiGet, apiPost, apiPut, apiDelete } from './api';
+import Emprestimos from './components/Emprestimos';
 import './App.css';
 
 function App() {
@@ -180,8 +180,12 @@ function App() {
               </button>
             </li>
           ))}
-        </ul>
+               </ul>
       )}
+
+      <hr />
+
+      <Emprestimos />
     </main>
   );
 }
